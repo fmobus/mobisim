@@ -5,7 +5,7 @@ import Dimensions from 'react-dimensions'
 import ReactKonva from 'react-konva'
 import ScrollLock from 'react-scroll-lock'
 
-import { zoom, recenter } from '../actions/map'
+import { zoom, recenter, dragStart, dragMove, dragEnd } from '../actions/map'
 import Tiler from '../lib/tiler'
 import Tile from './Tile'
 
@@ -20,6 +20,17 @@ function mapDispatchToProps(dispatch) {
   return {
     onScroll: function(ev) {
       dispatch(zoom(ev.deltaY))
+    },
+    onMouseDown: function({ evt: { latitude, longitude }}) {
+      dispatch(dragStart({ latitude, longitude }))
+    },
+    onMouseMove: function({ evt: { latitude, longitude, buttons }}) {
+      if (buttons & 1) {
+        dispatch(dragMove({ latitude, longitude }))
+      }
+    },
+    onMouseUp: function({ evt: { latitude, longitude }}) {
+      dispatch(dragEnd({ latitude, longitude }))
     },
     onClick: function({ evt: { latitude, longitude } }) {
       dispatch(recenter({ latitude, longitude }));
@@ -38,8 +49,13 @@ const Map = React.createClass({
   },
 
   buildTile(tile, idx) {
+    let handlers = {
+      onMouseDown: this.props.onMouseDown,
+      onMouseMove: this.props.onMouseMove,
+      onMouseUp: this.props.onMouseup
+    }
     let key = tile.x + tile.y * 1000;
-    return <Tile key={key} {...tile} onClick={this.props.onClick}/>
+    return <Tile key={key} {...tile} {...handlers}/>
   },
 
   render() {
