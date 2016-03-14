@@ -3,7 +3,7 @@ import { ZOOM_IN, ZOOM_OUT, RECENTER } from '../actions/map'
 const initialState = {
   latitude: -30.0331,
   longitude: -51.23,
-  zoom: 15
+  zoom: 19
 }
 
 export default function map(state = initialState, action) {
@@ -13,7 +13,7 @@ export default function map(state = initialState, action) {
     case ZOOM_OUT:
       return { ...state, zoom: Math.max(5, state.zoom - 1) }
     case RECENTER:
-      return { ...state, latitude: action.latitude, longiture: action.longitude }
+      return { ...state, latitude: action.latitude, longitude: action.longitude }
     default:
       return state;
   }

@@ -16,7 +16,10 @@ function appendCoords(tile) {
   return { ...tile, longitude: tile2long(tile.x, tile.z), latitude: tile2lat(tile.y, tile.z) };
 }
 
-export function Tiler(width, height) {
+const Tiler = function(width, height) {
+  this.width = width;
+  this.height = height;
+
   let tileSize = 256;
   let columns  = Math.ceil(width / tileSize);
   let rows     = Math.ceil(height / tileSize);
@@ -29,25 +32,39 @@ export function Tiler(width, height) {
     var tiles = [];
     var centerTile = { x: long2tile(lon, zoom), y: lat2tile(lat, zoom), z: zoom };
     var tileEdge = { longitude: tile2long(centerTile.x, zoom), latitude: tile2lat(centerTile.y, zoom) };
-    var tileWidthInWorld  = tileEdge.longitude - tile2long(centerTile.x - 1, zoom);
-    var tileHeightInWorld = tileEdge.latitude  - tile2lat(centerTile.x - 1, zoom);
-    var centerOffsetX = ((lon - tileEdge.longitude) / tileWidthInWorld) * tileSize;
-    var centerOffsetY = ((lat - tileEdge.latitude) / tileHeightInWorld) * tileSize;
+    var inWorldWidth  = tileEdge.longitude - tile2long(centerTile.x - 1, zoom);
+    var inWorldHeight = tileEdge.latitude  - tile2lat(centerTile.y - 1, zoom);
+    var centerOffsetX = ((lon - tileEdge.longitude) / inWorldWidth) * tileSize;
+    var centerOffsetY = ((lat - tileEdge.latitude) / inWorldHeight) * tileSize;
 
     for (var i = xFirst; i <= xLast; i++) {
       for (var j = yFirst; j <= yLast; j++) {
+        let longitude = tile2long(centerTile.x + i, zoom)
+        let latitude  = tile2lat(centerTile.y + j, zoom)
+        let isCenter = latitude == tileEdge.latitude && longitude == tileEdge.longitude;
         tiles.push({
           x: centerTile.x + i, y: centerTile.y + j, z: zoom,
           left: (width / 2)  + tileSize * i - centerOffsetX,
           top:  (height / 2) + tileSize * j - centerOffsetY,
-          longitude: tile2long(centerTile.x + i, zoom),
-          latitude:  tile2lat(centerTile.y + j, zoom),
-          isCenter: (i==0) && (j == 0)
-        });
+          inWorldHeight, inWorldWidth, longitude, latitude, isCenter
+        })
       }
     }
+
     return tiles;
   };
 
   return this;
 }
+
+var instance = null;
+
+export default function(width, height) {
+  if (!instance) {
+    instance = new Tiler(width, height);
+  } else if ((instance.width != width) || (instance.height != height)) {
+    instance = new Tiler(width, height);
+  }
+  return instance;
+
+};

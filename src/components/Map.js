@@ -5,29 +5,26 @@ import Dimensions from 'react-dimensions'
 import ReactKonva from 'react-konva'
 import ScrollLock from 'react-scroll-lock'
 
-import { zoom } from '../actions/map'
-import { Tiler, degrees2meters, meters2degress } from '../utils';
+import { zoom, recenter } from '../actions/map'
+import Tiler from '../lib/tiler'
 import Tile from './Tile'
 
 function mapStateToProps(state, ownProps) {
   return {
     ...state.map,
     width: ownProps.containerWidth,
-    height: ownProps.containerHeight
+    height: ownProps.containerHeight,
   }
 }
 function mapDispatchToProps(dispatch) {
   return {
     onScroll: function(ev) {
       dispatch(zoom(ev.deltaY))
+    },
+    onClick: function({ evt: { latitude, longitude } }) {
+      dispatch(recenter({ latitude, longitude }));
     }
   }
-}
-
-var tileCoordinate = function(x, y, z, latitude, longitude){
-  return [
-
-  ];
 }
 
 const Map = React.createClass({
@@ -37,33 +34,22 @@ const Map = React.createClass({
     longitude: PropTypes.number.isRequired,
     zoom: PropTypes.number.isRequired,
     width: PropTypes.number.isRequired,
-    height: PropTypes.number.isRequired
-  },
-
-  componentWillMount() {
-    this.tiler = new Tiler(this.props.width, this.props.height);
-  },
-
-  componentWillReceiveProps(nextProps) {
-    this.tiler = new Tiler(this.props.width, this.props.height);
+    height: PropTypes.number.isRequired,
   },
 
   buildTile(tile, idx) {
     let key = tile.x + tile.y * 1000;
-    return <Tile key={key} {...tile}/>
+    return <Tile key={key} {...tile} onClick={this.props.onClick}/>
   },
 
   render() {
-    let { longitude, latitude, zoom, containerHeight: height, containerWidth: width } = this.props
-    let tiles = this.tiler.getTiles(longitude, latitude, zoom)
+    let { longitude, latitude, zoom, tiler, height, width } = this.props
+    let tiles = Tiler(width, height).getTiles(longitude, latitude, zoom)
     return (
       <ReactKonva.Stage height={height} width={width}>
         <ReactKonva.Layer>
           <ReactKonva.Rect x={0} y={0} height={height} width={width} fill="lightgray" />
           {tiles.map(this.buildTile)}
-        </ReactKonva.Layer>
-        <ReactKonva.Layer>
-          <ReactKonva.Circle x={100} y={100} radius={200} stroke="blue" />
         </ReactKonva.Layer>
       </ReactKonva.Stage>
     );
