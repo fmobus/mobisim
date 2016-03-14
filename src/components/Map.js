@@ -1,18 +1,20 @@
 import React, { PropTypes } from 'react'
 import { connect } from 'react-redux'
 
-import MapTheTile from 'map-the-tiles'
+import Dimensions from 'react-dimensions'
 import ReactKonva from 'react-konva'
 import ScrollLock from 'react-scroll-lock'
 
 import { zoom } from '../actions/map'
-import { degrees2meters, meters2degress } from '../utils';
+import { Tiler, degrees2meters, meters2degress } from '../utils';
 import Tile from './Tile'
 
-const TILER = new MapTheTile({ width: 1200, height: 800 });
-
-function mapStateToProps(state) {
-  return state.map;
+function mapStateToProps(state, ownProps) {
+  return {
+    ...state.map,
+    width: ownProps.containerWidth,
+    height: ownProps.containerHeight
+  }
 }
 function mapDispatchToProps(dispatch) {
   return {
@@ -22,25 +24,43 @@ function mapDispatchToProps(dispatch) {
   }
 }
 
+var tileCoordinate = function(x, y, z, latitude, longitude){
+  return [
+
+  ];
+}
+
 const Map = React.createClass({
   mixins: [ ScrollLock ],
   propTypes: {
     latitude: PropTypes.number.isRequired,
     longitude: PropTypes.number.isRequired,
-    zoom: PropTypes.number.isRequired
+    zoom: PropTypes.number.isRequired,
+    width: PropTypes.number.isRequired,
+    height: PropTypes.number.isRequired
   },
+
+  componentWillMount() {
+    this.tiler = new Tiler(this.props.width, this.props.height);
+  },
+
+  componentWillReceiveProps(nextProps) {
+    this.tiler = new Tiler(this.props.width, this.props.height);
+  },
+
   buildTile(tile, idx) {
     let key = tile.x + tile.y * 1000;
     return <Tile key={key} {...tile}/>
   },
+
   render() {
-    console.log('rendering map', this.props)
-    let tiles = TILER.getTiles(degrees2meters(this.props.longitude, this.props.latitude), this.props.zoom)
+    let { longitude, latitude, zoom, containerHeight: height, containerWidth: width } = this.props
+    let tiles = this.tiler.getTiles(longitude, latitude, zoom)
     return (
-      <ReactKonva.Stage height={800} width={1200}>
+      <ReactKonva.Stage height={height} width={width}>
         <ReactKonva.Layer>
+          <ReactKonva.Rect x={0} y={0} height={height} width={width} fill="lightgray" />
           {tiles.map(this.buildTile)}
-          <ReactKonva.Rect x={0} y={0} height={800} width={1200} stroke="red" />
         </ReactKonva.Layer>
         <ReactKonva.Layer>
           <ReactKonva.Circle x={100} y={100} radius={200} stroke="blue" />
@@ -50,4 +70,4 @@ const Map = React.createClass({
   }
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(Map)
+export default Dimensions()(connect(mapStateToProps, mapDispatchToProps)(Map))

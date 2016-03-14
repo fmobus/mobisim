@@ -3,7 +3,6 @@ import ReactKonva from 'react-konva'
 
 export default React.createClass({
   componentWillMount() {
-    console.log('mounting');
     let style = 'emerald'
     let { x, y, z } = this.props
 
@@ -11,9 +10,19 @@ export default React.createClass({
     this.img.src = `http://api.mapbox.com/v4/mapbox.${style}/${z}/${x}/${y}.jpg?access_token=${process.env.MAPBOX_TOKEN}`;
   },
   render() {
-    let { left : x, top: y } = this.props
+    let { left, top, x, y, z, longitude, latitude, isCenter } = this.props
     let img = this.img;
-    return <ReactKonva.Image image={img} border="blue" x={x} y={y} width={256} height={256}  />
+    let debugColor = (isCenter)? 'red':'blue';
+    return (
+      <ReactKonva.Group>
+        <ReactKonva.Image stroke="blue" image={img} border={debugColor} x={left} y={top} width={256} height={256}  />
+        <ReactKonva.Text text={x} x={left+5} y={top+5}  fill={debugColor} />
+        <ReactKonva.Text text={y} x={left+5} y={top+25} fill={debugColor} />
+        <ReactKonva.Text text={longitude} x={left+5} y={top+45} fill={debugColor} />
+        <ReactKonva.Text text={latitude}  x={left+5} y={top+65} fill={debugColor} />
+        <ReactKonva.Text text={z} x={left+5} y={top+85}  fill={debugColor} />
+      </ReactKonva.Group>
+    )
   }
 });
 
