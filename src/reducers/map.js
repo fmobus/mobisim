@@ -3,7 +3,7 @@ import { ZOOM_IN, ZOOM_OUT, RECENTER, DRAG_START, DRAG_MOVE, DRAG_END } from '..
 const initialState = {
   latitude: -30.0331,
   longitude: -51.23,
-  zoom: 19,
+  zoom: 16,
   dragCenter: {}
 }
 

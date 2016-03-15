@@ -2,9 +2,6 @@ import React from 'react'
 import ReactKonva from 'react-konva'
 
 export default React.createClass({
-  initialState() {
-    dragCenter: {}
-  },
   componentWillMount() {
     let style = 'emerald'
     let { x, y, z } = this.props

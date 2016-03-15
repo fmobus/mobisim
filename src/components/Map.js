@@ -8,10 +8,13 @@ import ScrollLock from 'react-scroll-lock'
 import { zoom, recenter, dragStart, dragMove, dragEnd } from '../actions/map'
 import Tiler from '../lib/tiler'
 import Tile from './Tile'
+import Point from './Point'
+import Segment from './Segment'
 
 function mapStateToProps(state, ownProps) {
   return {
     ...state.map,
+    entities: state.entities,
     width: ownProps.containerWidth,
     height: ownProps.containerHeight,
   }
@@ -45,11 +48,27 @@ const Map = React.createClass({
     zoom: PropTypes.number.isRequired,
     width: PropTypes.number.isRequired,
     height: PropTypes.number.isRequired,
+    entities: PropTypes.array.isRequired
   },
 
   buildTile(tile, idx) {
     let key = tile.x + tile.y * 1000;
     return <Tile key={key} {...tile} />
+  },
+
+  entityBuilder(centerTile) {
+    return function(entity, idx) {
+      let projector = function([ longitude, latitude ]) {
+        return [
+          centerTile.left + (longitude - centerTile.longitude) / centerTile.inWorldWidth * 256,
+          centerTile.top  + (latitude - centerTile.latitude) / centerTile.inWorldHeight * 256
+        ]
+      }
+      switch (entity.type) {
+        case 'Point':   return <Point key={entity.id} projector={projector} {...entity} />
+        case 'Segment': return <Segment key={entity.id} projector={projector} {...entity} />
+      }
+    }
   },
 
   appendCoords(centerTile, handler) {
@@ -61,8 +80,7 @@ const Map = React.createClass({
   },
 
   render() {
-    console.log(this.props);
-    let { longitude, latitude, zoom, tiler, height, width } = this.props
+    let { longitude, latitude, zoom, tiler, height, width, entities } = this.props
     let tileSetup = Tiler(width, height).tileSetupFor(longitude, latitude, zoom)
     let centerTile = tileSetup.centerTile();
     let handlers = {
@@ -79,6 +97,10 @@ const Map = React.createClass({
           </ReactKonva.Group>
           <ReactKonva.Line points={[ 0, height/2, width, height/2 ]} stroke="lightpink" strokeWidth={1} dash={[ 33,10 ]} />
           <ReactKonva.Line points={[ width/2,  0, width/2, height ]} stroke="lightpink" strokeWidth={1} dash={[ 33,10 ]} />
+          <ReactKonva.Text x={5} y={5} fill="orange" text={`${latitude} / ${longitude} (${zoom})`}/>
+          <ReactKonva.Group>
+            {entities.map(this.entityBuilder(centerTile))}
+          </ReactKonva.Group>
         </ReactKonva.Layer>
       </ReactKonva.Stage>
     );
