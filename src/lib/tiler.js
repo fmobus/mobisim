@@ -28,7 +28,7 @@ const Tiler = function(width, height) {
   let yFirst = -1 * Math.ceil(rows / 2);
   let yLast  = +1 * Math.ceil(rows / 2);
 
-  this.getTiles = function(lon, lat, zoom) {
+  this.tileSetupFor = function(lon, lat, zoom) {
     var tiles = [];
     var centerTile = { x: long2tile(lon, zoom), y: lat2tile(lat, zoom), z: zoom };
     var tileEdge = { longitude: tile2long(centerTile.x, zoom), latitude: tile2lat(centerTile.y, zoom) };
@@ -51,13 +51,23 @@ const Tiler = function(width, height) {
       }
     }
 
-    return tiles;
+    return new TileSetup(tiles);
   };
 
   return this;
 }
 
 var instance = null;
+
+const TileSetup = function(tiles) {
+  this.centerTile = function() {
+    return tiles.filter((t) => t.isCenter)[0];
+  }
+  this.tiles = function() {
+    return tiles;
+  }
+  return this;
+}
 
 export default function(width, height) {
   if (!instance) {

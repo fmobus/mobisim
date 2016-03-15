@@ -14,7 +14,7 @@
     "webpack-hot-middleware": "^2.7.1"
   },
   "scripts": {
-    "hack": "source SECRETS && NODE_ENV=dev webpack-dev-server --progress --colors --watch --port 4000",
+    "hack": "source SECRETS && NODE_ENV=dev webpack-dev-server --progress --colors --watch --port 4000 --host 0.0.0.0",
     "build": "webpack src/app.js bundle.js"
   },
   "dependencies": {

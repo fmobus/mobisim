@@ -24,22 +24,21 @@ function mapDispatchToProps(dispatch) {
     onMouseDown: function({ evt: { latitude, longitude }}) {
       dispatch(dragStart({ latitude, longitude }))
     },
-    onMouseMove: function({ evt: { latitude, longitude, buttons }}) {
-      if (buttons & 1) {
+    onMouseMove: function({ evt: { movementX, movementY, latitude, longitude, buttons }}) {
+      let isMouseDown = buttons & 1
+      if (isMouseDown) {
         dispatch(dragMove({ latitude, longitude }))
       }
     },
     onMouseUp: function({ evt: { latitude, longitude }}) {
       dispatch(dragEnd({ latitude, longitude }))
     },
-    onClick: function({ evt: { latitude, longitude } }) {
-      dispatch(recenter({ latitude, longitude }));
-    }
   }
 }
 
 const Map = React.createClass({
   mixins: [ ScrollLock ],
+
   propTypes: {
     latitude: PropTypes.number.isRequired,
     longitude: PropTypes.number.isRequired,
@@ -49,23 +48,37 @@ const Map = React.createClass({
   },
 
   buildTile(tile, idx) {
-    let handlers = {
-      onMouseDown: this.props.onMouseDown,
-      onMouseMove: this.props.onMouseMove,
-      onMouseUp: this.props.onMouseup
-    }
     let key = tile.x + tile.y * 1000;
-    return <Tile key={key} {...tile} {...handlers}/>
+    return <Tile key={key} {...tile} />
+  },
+
+  appendCoords(centerTile, handler) {
+    return function(ev) {
+      ev.evt.latitude  = centerTile.latitude  - centerTile.inWorldHeight * (centerTile.top  - ev.evt.layerY) / 256;
+      ev.evt.longitude = centerTile.longitude - centerTile.inWorldWidth  * (centerTile.left - ev.evt.layerX) / 256;
+      return handler(ev);
+    }
   },
 
   render() {
+    console.log(this.props);
     let { longitude, latitude, zoom, tiler, height, width } = this.props
-    let tiles = Tiler(width, height).getTiles(longitude, latitude, zoom)
+    let tileSetup = Tiler(width, height).tileSetupFor(longitude, latitude, zoom)
+    let centerTile = tileSetup.centerTile();
+    let handlers = {
+      onMouseDown: this.appendCoords(centerTile, this.props.onMouseDown),
+      onMouseMove: this.appendCoords(centerTile, this.props.onMouseMove),
+      onMouseUp:   this.appendCoords(centerTile, this.props.onMouseUp),
+    }
     return (
       <ReactKonva.Stage height={height} width={width}>
         <ReactKonva.Layer>
           <ReactKonva.Rect x={0} y={0} height={height} width={width} fill="lightgray" />
-          {tiles.map(this.buildTile)}
+          <ReactKonva.Group {...handlers}>
+            {tileSetup.tiles().map(this.buildTile)}
+          </ReactKonva.Group>
+          <ReactKonva.Line points={[ 0, height/2, width, height/2 ]} stroke="lightpink" strokeWidth={1} dash={[ 33,10 ]} />
+          <ReactKonva.Line points={[ width/2,  0, width/2, height ]} stroke="lightpink" strokeWidth={1} dash={[ 33,10 ]} />
         </ReactKonva.Layer>
       </ReactKonva.Stage>
     );
