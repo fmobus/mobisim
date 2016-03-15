@@ -138,6 +138,6 @@ var DEFAULTS = {
 }
 
 export default {
-  Turtle:    function(options) { return new Turtle(Object.assign(DEFAULTS, options)); },
-  GeoTurtle: function(options) { return new GeoTurtle(Object.assign(DEFAULTS, options)); },
+  Turtle:    function(options) { return new Turtle({ ...DEFAULTS, options }); },
+  GeoTurtle: function(options) { return new GeoTurtle({ ...DEFAULTS, options }); }
 };
