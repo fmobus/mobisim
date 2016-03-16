@@ -4,8 +4,10 @@ import { connect } from 'react-redux'
 import Dimensions from 'react-dimensions'
 import ScrollLock from 'react-scroll-lock'
 import ReactKonva from 'react-konva'
+import { partial } from 'lodash'
 
 import { zoom, recenter, dragStart, dragMove, dragEnd } from '../actions/map'
+import { createSegment, unfocus, focusEntity } from '../actions/entities'
 import Tiler from '../lib/tiler'
 import Tile from './Tile'
 import Point from './Point'
@@ -36,6 +38,13 @@ function mapDispatchToProps(dispatch) {
     onMouseUp: function({ evt: { latitude, longitude }}) {
       dispatch(dragEnd({ latitude, longitude }))
     },
+    onDoubleClick: function({ evt: { latitude, longitude }}) {
+      dispatch(createSegment({ latitude, longitude }))
+    },
+    onClickEntity: function(ev, { id }) {
+      dispatch(unfocus())
+      dispatch(focusEntity(id))
+    }
   }
 }
 
@@ -57,19 +66,30 @@ const Map = React.createClass({
   },
 
   entityBuilder(projector) {
-    return function(entity, idx) {
+    return (entity, idx) => {
+      let onClick = partial(this.props.onClickEntity, _, { id: entity.id })
       switch (entity.type) {
-        case 'Point':   return <Point key={entity.id}   projector={projector} {...entity} />
-        case 'Segment': return <Segment key={entity.id} projector={projector} {...entity} />
+        case 'Point':   return <Point key={entity.id}   projector={projector.projectToCanvas} {...entity} onClick={onClick} />
+        case 'Segment': return <Segment key={entity.id} projector={projector.projectToCanvas} {...entity} onClick={onClick} />
       }
     }
   },
 
-  appendCoords(centerTile, handler) {
-    return function(ev) {
-      ev.evt.latitude  = centerTile.latitude  - centerTile.inWorldHeight * (centerTile.top  - ev.evt.layerY) / 256;
-      ev.evt.longitude = centerTile.longitude - centerTile.inWorldWidth  * (centerTile.left - ev.evt.layerX) / 256;
-      return handler(ev);
+  buildProjector(centerTile) {
+    return {
+      projectToCanvas([ longitude, latitude]) {
+        return [
+          centerTile.left + (longitude - centerTile.longitude) / centerTile.inWorldWidth * 256,
+          centerTile.top  + (latitude - centerTile.latitude) / centerTile.inWorldHeight * 256
+        ]
+      },
+      enhanceHandlerWithCoordinates(handler) {
+        return function(ev) {
+          ev.evt.latitude  = centerTile.latitude  - centerTile.inWorldHeight * (centerTile.top  - ev.evt.layerY) / 256;
+          ev.evt.longitude = centerTile.longitude - centerTile.inWorldWidth  * (centerTile.left - ev.evt.layerX) / 256;
+          return handler(ev);
+        }
+      }
     }
   },
 
@@ -77,16 +97,12 @@ const Map = React.createClass({
     let { longitude, latitude, zoom, tiler, height, width, entities } = this.props
     let tileSetup = Tiler(width, height).tileSetupFor(longitude, latitude, zoom)
     let centerTile = tileSetup.centerTile();
+    let projector = this.buildProjector(centerTile)
     let handlers = {
-      onMouseDown: this.appendCoords(centerTile, this.props.onMouseDown),
-      onMouseMove: this.appendCoords(centerTile, this.props.onMouseMove),
-      onMouseUp:   this.appendCoords(centerTile, this.props.onMouseUp),
-    }
-    let projector = function([ longitude, latitude ]) {
-        return [
-          centerTile.left + (longitude - centerTile.longitude) / centerTile.inWorldWidth * 256,
-          centerTile.top  + (latitude - centerTile.latitude) / centerTile.inWorldHeight * 256
-        ]
+      onMouseDown: projector.enhanceHandlerWithCoordinates(this.props.onMouseDown),
+      onMouseMove: projector.enhanceHandlerWithCoordinates(this.props.onMouseMove),
+      onMouseUp:   projector.enhanceHandlerWithCoordinates(this.props.onMouseUp),
+      onDblClick:  projector.enhanceHandlerWithCoordinates(this.props.onDoubleClick)
     }
 
     return (

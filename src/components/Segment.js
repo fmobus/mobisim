@@ -12,6 +12,7 @@ export default React.createClass({
     length: PropTypes.number.isRequired,
     projector: PropTypes.func.isRequired,
     focused: PropTypes.bool,
+    onClick: PropTypes.func
   },
 
   _buildTurtle(props) {
@@ -33,13 +34,12 @@ export default React.createClass({
     let { projector, focused } = this.props;
     let points = flatten(this.trace.map(projector));
     let style = {
-      stroke: (focused)? 'orange' : 'blue'
+      stroke: (focused)? 'orange' : 'blue',
+      strokeWidth: 5
     }
 
     return (
-      <ReactKonva.Line points={points} {...style} />
+      <ReactKonva.Line points={points} {...style} onClick={this.props.onClick} />
     )
   }
 });
-
-
