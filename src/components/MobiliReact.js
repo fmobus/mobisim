@@ -7,10 +7,11 @@ import Map from './Map'
 
 const MobiliReact = function ({store}) {
   let styles = { width: '100%', height: '100%', position: 'fixed', margin: 0 };
+
   return (
     <Provider store={store}>
       <div style={styles}>
-        <Map/>
+        <Map />
         {/dev/.test(process.env.NODE_ENV) && (
           <div className='devtools'>
             <DevTools />

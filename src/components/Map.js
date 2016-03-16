@@ -2,8 +2,8 @@ import React, { PropTypes } from 'react'
 import { connect } from 'react-redux'
 
 import Dimensions from 'react-dimensions'
-import ReactKonva from 'react-konva'
 import ScrollLock from 'react-scroll-lock'
+import ReactKonva from 'react-konva'
 
 import { zoom, recenter, dragStart, dragMove, dragEnd } from '../actions/map'
 import Tiler from '../lib/tiler'
@@ -56,16 +56,10 @@ const Map = React.createClass({
     return <Tile key={key} {...tile} />
   },
 
-  entityBuilder(centerTile) {
+  entityBuilder(projector) {
     return function(entity, idx) {
-      let projector = function([ longitude, latitude ]) {
-        return [
-          centerTile.left + (longitude - centerTile.longitude) / centerTile.inWorldWidth * 256,
-          centerTile.top  + (latitude - centerTile.latitude) / centerTile.inWorldHeight * 256
-        ]
-      }
       switch (entity.type) {
-        case 'Point':   return <Point key={entity.id} projector={projector} {...entity} />
+        case 'Point':   return <Point key={entity.id}   projector={projector} {...entity} />
         case 'Segment': return <Segment key={entity.id} projector={projector} {...entity} />
       }
     }
@@ -88,6 +82,13 @@ const Map = React.createClass({
       onMouseMove: this.appendCoords(centerTile, this.props.onMouseMove),
       onMouseUp:   this.appendCoords(centerTile, this.props.onMouseUp),
     }
+    let projector = function([ longitude, latitude ]) {
+        return [
+          centerTile.left + (longitude - centerTile.longitude) / centerTile.inWorldWidth * 256,
+          centerTile.top  + (latitude - centerTile.latitude) / centerTile.inWorldHeight * 256
+        ]
+    }
+
     return (
       <ReactKonva.Stage height={height} width={width}>
         <ReactKonva.Layer>
@@ -99,7 +100,7 @@ const Map = React.createClass({
           <ReactKonva.Line points={[ width/2,  0, width/2, height ]} stroke="lightpink" strokeWidth={1} dash={[ 33,10 ]} />
           <ReactKonva.Text x={5} y={5} fill="orange" text={`${latitude} / ${longitude} (${zoom})`}/>
           <ReactKonva.Group>
-            {entities.map(this.entityBuilder(centerTile))}
+            {entities.map(this.entityBuilder(projector))}
           </ReactKonva.Group>
         </ReactKonva.Layer>
       </ReactKonva.Stage>

@@ -11,7 +11,7 @@ function sin(angle) {
   return Math.sin(to_rad(angle));
 }
 
-function Turtle(options, self) {
+function _Turtle(options, self) {
   var self = self || {};
   // from here on,
   //   this has public stuff
@@ -97,9 +97,9 @@ function Turtle(options, self) {
   return this;
 }
 
-function GeoTurtle(options) {
+function _GeoTurtle(options) {
   var self = {};
-  Turtle.call(this, options, self);
+  _Turtle.call(this, options, self);
 
   this.forward = function(distance) {
     // adapted from http://www.movable-type.co.uk/scripts/latlong.html,
@@ -137,7 +137,5 @@ var DEFAULTS = {
   CURVE_STEPS: 8
 }
 
-export default {
-  Turtle:    function(options) { return new Turtle({ ...DEFAULTS, options }); },
-  GeoTurtle: function(options) { return new GeoTurtle({ ...DEFAULTS, options }); }
-};
+export const Turtle = function(options) { return new _Turtle({ ...DEFAULTS, options }); }
+export const GeoTurtle = function(options) { return new _GeoTurtle({ ...DEFAULTS, options }); }
