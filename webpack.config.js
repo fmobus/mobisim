@@ -6,7 +6,7 @@ module.exports = {
   entry: './src/app.js',
   module: {
     loaders: [
-      { test: /\.js$/, loader: 'babel-loader', include: /src/, query: { presets: ['es2015', 'react'] } }
+      { test: /\.js$/, loader: 'babel-loader', include: [ /src/, /mousetrap/ ], query: { presets: ['es2015', 'react'] } }
 
     ]
   },

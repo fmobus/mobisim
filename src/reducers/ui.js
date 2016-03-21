@@ -1,9 +1,12 @@
 const initialState = {
-  latitude: -30.033056,
-  longitude: -51.23,
-  level: 15
+  mode: 'PAN'
 }
 
 export default function ui (state = initialState, action) {
-  return state
+  switch (action.type) {
+    case 'SET_MODE':
+      return { mode: action.mode }
+    default:
+      return state;
+  }
 }

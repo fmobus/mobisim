@@ -18,6 +18,7 @@ export default function map(state = initialState, action) {
     case DRAG_START:
       return { ...state, dragCenter: { latitude: action.latitude, longitude: action.longitude } }
     case DRAG_MOVE:
+      if (Object.keys(state.dragCenter).length == 0) { return state }
       let longitude = state.longitude + (state.dragCenter.longitude - action.longitude)
       let latitude  = state.latitude  + (state.dragCenter.latitude  - action.latitude)
       if (isNaN(longitude) || isNaN(latitude)) { return { state } }

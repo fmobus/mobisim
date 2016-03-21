@@ -46,7 +46,8 @@ const Tiler = function(width, height) {
           x: centerTile.x + i, y: centerTile.y + j, z: zoom,
           left: (width / 2)  + tileSize * i - centerOffsetX,
           top:  (height / 2) + tileSize * j - centerOffsetY,
-          inWorldHeight, inWorldWidth, longitude, latitude, isCenter
+          inWorldHeight, inWorldWidth, longitude, latitude, isCenter,
+          width: tileSize, height: tileSize
         })
       }
     }
