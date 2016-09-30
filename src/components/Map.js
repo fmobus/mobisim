@@ -11,19 +11,21 @@ import { partial } from 'lodash'
 import { zoom, recenter, dragStart, dragMove, dragEnd } from '../actions/map'
 import { createPath, extendPath, unfocus, focusEntity, deleteFocusedEntity } from '../actions/entities'
 import { setMode } from '../actions/ui'
+
 import Tiler from '../lib/tiler'
 import Tile from './Tile'
 import Point from './Point'
 import Segment from './Segment'
 import Path from './Path'
+import Reticule from './Reticule'
 
 function mapStateToProps(state, ownProps) {
   return {
     ...state.map,
+    ...state.ui,
     entities: state.entities,
     width: ownProps.containerWidth,
     height: ownProps.containerHeight,
-    mode: state.ui.mode,
   }
 }
 function mapDispatchToProps(dispatch) {
@@ -57,6 +59,8 @@ function mapDispatchToProps(dispatch) {
     dispatch
   }
 }
+
+const withEventCoords = (projector, handler) => ({evt}) => handler(projector.projectFromMapEvent(evt))
 
 const Map = React.createClass({
   mixins: [ ScrollLock, MousetrapMixin ],
@@ -106,28 +110,19 @@ const Map = React.createClass({
 
   buildDragHandlers(projector, mode) {
     if (mode != 'PAN') { return {}; }
+    let whenMouseDown = (handler) => (ev) => (ev.evt.buttons&1)? handler(ev):null;
     let handlerMap = this.props.onDragMap;
     return {
-      onMouseDown: function({evt}) {
-        return handlerMap.start(projector.projectFromMapEvent(evt));
-      },
-      onMouseMove: function({evt}) {
-        if (evt.buttons & 1) {
-          return handlerMap.move(projector.projectFromMapEvent(evt));
-        }
-      },
-      onMouseUp: function({evt}) {
-        return handlerMap.end(projector.projectFromMapEvent(evt))
-      }
+      onMouseDown: withEventCoords(projector, handlerMap.start),
+      onMouseMove: whenMouseDown(withEventCoords(projector, handlerMap.move)),
+      onMouseUp:   withEventCoords(projector, handlerMap.end)
     }
   },
 
   buildClickHandlers(projector, mode) {
-    let withEventCoords = (handler) => ({evt}) => handler(projector.projectFromMapEvent(evt))
-
     switch (mode) {
-      case 'CREATE': return { onClick: withEventCoords(this.props.onCreateEntity) }
-      case 'EXTEND': return { onClick: withEventCoords(this.props.onExtendEntity) }
+      case 'CREATE': return { onClick: withEventCoords(projector, this.props.onCreateEntity) }
+      case 'EXTEND': return { onClick: withEventCoords(projector, this.props.onExtendEntity) }
       default: return {}
     }
   },
@@ -162,12 +157,7 @@ const Map = React.createClass({
           <ReactKonva.Group {...dragHandlers} {...clickHandlers}>
             {tileSetup.tiles().map(this.buildTile)}
           </ReactKonva.Group>
-          <ReactKonva.Group>
-            <ReactKonva.Line points={[ 0, height/2, width, height/2 ]} stroke="lightpink" strokeWidth={1} dash={[ 33,10 ]} />
-            <ReactKonva.Line points={[ width/2,  0, width/2, height ]} stroke="lightpink" strokeWidth={1} dash={[ 33,10 ]} />
-            <ReactKonva.Text x={5} y={5} fill="orange" text={`${latitude} / ${longitude} (${zoom})`}/>
-            <ReactKonva.Text x={5} y={25} fill="red" text={`${mode}`}/>
-          </ReactKonva.Group>
+          <Reticule { ...{width, height, latitude, longitude, zoom, mode} }/>
           <ReactKonva.Group>
             {entities.map(this.entityBuilder(projector))}
           </ReactKonva.Group>

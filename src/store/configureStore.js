@@ -8,7 +8,7 @@ export default function configureStore(initialState, history) {
   const logger = createLogger()
 
   const createStoreWithMiddleware = compose(
-    applyMiddleware(multi),
+//    applyMiddleware(multi),
 //    applyMiddleware(logger),
     DevTools.instrument()
   )(createStore)

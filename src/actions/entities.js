@@ -21,9 +21,7 @@ export function unfocus() {
 }
 
 export function focusEntity(id) {
-  return [
-    { type: FOCUS_ENTITY, id: id }
-  ]
+  return { type: FOCUS_ENTITY, id: id }
 }
 
 export function deleteFocusedEntity() {
