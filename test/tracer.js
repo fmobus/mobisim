@@ -43,6 +43,15 @@ describe("Tracer operations", () => {
       it("has toString", () => {
         expect(straight.toString()).to.be("F30");
       });
+      it("plots points and final heading for the shape", () => {
+        expect(straight.plot(90).points).to.eql([ [0, 0], [ 30,   0] ]);
+        expect(straight.plot(45).points).to.eql([ [0, 0], [ 21, -21] ]);
+        expect(straight.plot( 0).points).to.eql([ [0, 0], [  0, -30] ]);
+
+        expect(straight.plot(90).heading).to.eql(90);
+        expect(straight.plot(45).heading).to.eql(45);
+        expect(straight.plot( 0).heading).to.eql( 0);
+      });
     });
 
     describe("curves", () => {
@@ -83,6 +92,23 @@ describe("Tracer operations", () => {
         expect(curveRight.changeOfHeading()).to.be.eql(190.9859317102744);
         expect(curveLeft.changeOfHeading()).to.be(-85.94366926962348);
       });
+
+      it("plots points and final heading for the shape", () => {
+        expect(curveRight.plot(0).heading).to.be(190.9859317102744);
+        expect(curveLeft.plot(0).heading).to.be(-85.94366926962348);
+
+        let crPoints = curveRight.plot(0).points;
+        expect(crPoints.length).to.be(9);
+        expect(crPoints[0]).to.eql([  0,  0 ]);
+        expect(crPoints[1]).to.eql([ 12,  3 ]);
+        expect(crPoints[2]).to.eql([ 22, 10 ]);
+        expect(crPoints[3]).to.eql([ 28, 21 ]);
+        expect(crPoints[4]).to.eql([ 30, 33 ]);
+        expect(crPoints[5]).to.eql([ 26, 45 ]);
+        expect(crPoints[6]).to.eql([ 18, 54 ]);
+        expect(crPoints[7]).to.eql([  7, 59 ]);
+        expect(crPoints[8]).to.eql([ -6, 59 ]);
+      });
     });
 
   });
@@ -110,6 +136,7 @@ describe("Tracer operations", () => {
       expect(mixed.changeOfHeading()).to.be(105.04226244065092);
     });
   });
+
   describe("Appending", () => {
     xit("same operations are merged", () => {
       let result = base.append("F30");
