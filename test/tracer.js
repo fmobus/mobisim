@@ -53,8 +53,8 @@ describe("Tracer operations", () => {
         expect(straight.plot( 0).heading).to.eql( 0);
       });
       it("can be expanded and contracted in length", () => {
-        expect(straight.extend(100).toString()).to.be("F130");
-        expect(straight.extend(-10).toString()).to.be("F20");
+        expect(straight.longer(100).toString()).to.be("F130");
+        expect(straight.shorter(10).toString()).to.be("F20");
       });
     });
 
@@ -115,8 +115,13 @@ describe("Tracer operations", () => {
       });
 
       it("can be expanded and contracted in length", () => {
-        expect(curveLeft.extend(100).toString()).to.be("L60,190");
-        expect(curveLeft.extend(-10).toString()).to.be("L60,80");
+        expect(curveLeft.longer(100).toString()).to.be("L60,190");
+        expect(curveLeft.shorter(10).toString()).to.be("L60,80");
+      });
+
+      xit("can be bent by changing the radius", () => {
+        expect(curveRight.bend(10).toString()).to.be("R40,100");
+        expect(curveLeft.bend(-20).toString()).to.be("R40,100");
       });
     });
 

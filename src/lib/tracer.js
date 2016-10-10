@@ -33,18 +33,20 @@ export class Part {
   mergeable(other) {
     return other.cmd == this.cmd
   }
+  merge(other) {
+    return this.with({ dist: this.dist + other.dist });
+  }
   changeOfHeading() {
     return 0;
   }
-  rangeX(heading) {
-    return [ 0, 0 ];
+  longer(dist) {
+    return this.with({ dist: this.dist + dist });
   }
-  rangeY(heading) {
-    return [ 0, 0 ];
+  shorter(dist) {
+    return this.with({ dist: this.dist - dist });
   }
-  from(x, y, heading) {
-    return [ x, y, heading ];
-  }
+  /* abstract with(**args) */
+  /* abstract toString() */
 }
 
 class HeadingPart extends Part {
@@ -55,15 +57,15 @@ class HeadingPart extends Part {
   toString() {
     return "H" + this.heading
   }
+  with({ heading }) {
+    return new HeadingPart(heading || this.heading);
+  }
 }
 
 class StraightPart extends Part {
   constructor(dist) {
     super('F');
     this.dist = dist
-  }
-  merge(other) {
-    return new StraightPart(this.dist + other.dist);
   }
   toString() {
     return "F" + this.dist;
@@ -74,8 +76,8 @@ class StraightPart extends Part {
     let points = [ origin, sink ];
     return { points, heading }
   }
-  extend(dist) {
-    return new StraightPart(this.dist + dist);
+  with({ dist }) {
+    return new StraightPart(dist || this.dist);
   }
 }
 
@@ -87,9 +89,6 @@ class CurvePart extends Part {
   }
   mergeable(other) {
     return super.mergeable(other) && other.radius == this.radius;
-  }
-  merge(other) {
-    return new CurvePart(this.cmd, this.radius, this.dist + other.dist);
   }
   toString() {
     return `${this.cmd}${this.radius},${this.dist}`
@@ -115,8 +114,8 @@ class CurvePart extends Part {
       heading: this.changeOfHeading(heading)
     };
   }
-  extend(dist) {
-    return new CurvePart(this.cmd, this.radius, this.dist + dist);
+  with({ cmd, radius, dist }) {
+    return new CurvePart(cmd || this.cmd, radius || this.radius, dist || this.dist);
   }
 }
 
