@@ -52,6 +52,10 @@ describe("Tracer operations", () => {
         expect(straight.plot(45).heading).to.eql(45);
         expect(straight.plot( 0).heading).to.eql( 0);
       });
+      it("can be expanded and contracted in length", () => {
+        expect(straight.extend(100).toString()).to.be("F130");
+        expect(straight.extend(-10).toString()).to.be("F20");
+      });
     });
 
     describe("curves", () => {
@@ -108,6 +112,11 @@ describe("Tracer operations", () => {
         expect(crPoints[6]).to.eql([ 18, 54 ]);
         expect(crPoints[7]).to.eql([  7, 59 ]);
         expect(crPoints[8]).to.eql([ -6, 59 ]);
+      });
+
+      it("can be expanded and contracted in length", () => {
+        expect(curveLeft.extend(100).toString()).to.be("L60,190");
+        expect(curveLeft.extend(-10).toString()).to.be("L60,80");
       });
     });
 

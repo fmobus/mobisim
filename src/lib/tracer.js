@@ -74,6 +74,9 @@ class StraightPart extends Part {
     let points = [ origin, sink ];
     return { points, heading }
   }
+  extend(dist) {
+    return new StraightPart(this.dist + dist);
+  }
 }
 
 class CurvePart extends Part {
@@ -111,6 +114,9 @@ class CurvePart extends Part {
       points: points.map(translateToOrigin),
       heading: this.changeOfHeading(heading)
     };
+  }
+  extend(dist) {
+    return new CurvePart(this.cmd, this.radius, this.dist + dist);
   }
 }
 
